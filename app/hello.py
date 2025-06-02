@@ -1,20 +1,28 @@
-from flask import Flask, request, make_response, redirect
+from flask import Flask, request, make_response, redirect, render_template
+from flask_bootstrap import Bootstrap
+from flask_moment import Moment
+from datetime import datetime
 
 app = Flask(__name__)
 
+bootstrap = Bootstrap()
+moment = Moment()
+
+bootstrap.init_app(app)
+moment.init_app(app)
+
 @app.route('/')
 def index():
-    response = make_response('This is a test')
-    response.set_cookie('username', 'John Doe')
-    return response
+    return render_template('index.html', name = 'John', current_time = datetime.utcnow()), 404
 
-@app.route('/to_gg')
-def to_gg():
-    return redirect('https://www.google.com')
 
-@app.route('/user/<username>')
-def show_user(username):
-    return f'User: {username}'
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return render_template('500.html'), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
