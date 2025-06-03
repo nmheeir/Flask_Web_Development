@@ -83,8 +83,6 @@ def forge():
     from app import db
     import click
 
-    db.drop_all()
-    db.create_all()
     click.echo('Generating users...')
     User.generate_fake(10)
     click.echo('Generating posts...')
