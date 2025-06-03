@@ -424,6 +424,39 @@ class Comment(db.Model):
             db.session.rollback()
         
 db.event.listen(Comment.body, 'set', Comment.on_changed_body)
+
+class UserLog(db.Model):
+    __tablename__ = 'user_logs'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    action = db.Column(db.String(20))  # 'login' hoặc 'logout'
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    ip = db.Column(db.String(64))
+
+    user = db.relationship('User', backref='logs')
+    @staticmethod
+    def generate_fake_logs(count=100):
+        from random import seed, randint
+        from sqlalchemy.exc import IntegrityError
+        from faker import Faker
+        
+        fake = Faker()
+        user_count = User.query.count()
+        actions = ['login', 'logout']
+        
+        for i in range(count):
+            u = User.query.offset(randint(0, user_count - 1)).first()
+            log = UserLog(
+                user=u,
+                action=fake.random_element(actions),
+                timestamp=fake.past_datetime(),
+                ip=fake.ipv4()
+            )
+            db.session.add(log)
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
     
     
 

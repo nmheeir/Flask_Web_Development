@@ -6,7 +6,7 @@ from . import main
 from .forms import EditProfileForm, EditProfileAdminForm, PostForm,\
     CommentForm
 from .. import db
-from ..models import Permission, Role, User, Post, Comment
+from ..models import Permission, Role, User, Post, Comment, UserLog
 from ..decorators import admin_required, permission_required
 
 
@@ -311,3 +311,12 @@ def delete_user(id):
     flash('User deleted successfully.')
     return redirect(url_for('.manage'))
 
+@main.route('/logs')
+@login_required
+@admin_required
+def user_logs():
+    page = request.args.get('page', 1, type=int)
+    pagination = UserLog.query.order_by(UserLog.timestamp.desc()).paginate(
+        page=page, per_page=20, error_out=False)
+    logs = pagination.items
+    return render_template('user_logs.html', logs=logs, pagination=pagination)

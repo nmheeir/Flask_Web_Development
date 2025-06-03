@@ -11,7 +11,7 @@ import sys
 import click
 from flask_migrate import Migrate, upgrade
 from app import create_app, db
-from app.models import User, Follow, Role, Permission, Post, Comment
+from app.models import User, Follow, Role, Permission, Post, Comment, UserLog
 
 app = create_app(os.getenv('FLASK_CONFIG') or 'default')
 migrate = Migrate(app, db)
@@ -20,7 +20,7 @@ migrate = Migrate(app, db)
 @app.shell_context_processor
 def make_shell_context():
     return dict(db=db, User=User, Follow=Follow, Role=Role,
-                Permission=Permission, Post=Post, Comment=Comment)
+                Permission=Permission, Post=Post, Comment=Comment, UserLog=UserLog)
 
 
 @app.cli.command()
@@ -100,5 +100,9 @@ def forge():
     if Comment.query.count() == 0:
         click.echo('Generating comments...')
         Comment.generate_fake_comments(100)
+
+    if UserLog.query.count() == 0:
+        click.echo('Generating user logs...')
+        UserLog.generate_fake_logs(100)
 
     click.echo('Done.')
