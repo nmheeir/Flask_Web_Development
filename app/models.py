@@ -331,15 +331,15 @@ class Post(db.Model):
     
     @staticmethod
     def generate_fake(count=100):
-        from random import seed, randint
-        import forgery_py
+        from random import randint
+        from faker import Faker
 
-        seed()
+        fake = Faker()
         user_count = User.query.count()
         for i in range(count):
             u = User.query.offset(randint(0, user_count - 1)).first()
-            p = Post(body=forgery_py.lorem_ipsum.sentences(randint(1, 3)),
-                    timestamp=forgery_py.date.date(True),
+            p = Post(body=fake.paragraph(nb_sentences=randint(1, 3)),
+                    timestamp=fake.date_time_this_year(),
                     author=u)
             db.session.add(p)
             db.session.commit()
