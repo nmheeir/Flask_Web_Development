@@ -6,6 +6,9 @@ from flask_login import UserMixin, AnonymousUserMixin
 from . import db, login_manager
 from datetime import datetime
 import hashlib
+import bleach
+import markdown
+
 
 class Permission:
     FOLLOW = 1
@@ -69,6 +72,32 @@ class Role(db.Model):
     def __repr__(self):
         return '<Role %r>' % self.name
 
+class Post(db.Model):
+    __tablename__ = 'posts'
+    id = db.Column(db.Integer, primary_key=True)
+    body = db.Column(db.Text)
+    body_html = db.Column(db.Text)
+    timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
+    author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    
+    @staticmethod
+    def on_body_change(target, value, oldvalue, initiator):
+        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
+                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
+                        'h1', 'h2', 'h3', 'p']
+        extensions = ['markdown.extensions.extra',
+                      'markdown.extensions.codehilite',
+                      'markdown.extensions.toc']
+        target.body_html = bleach.linkify(bleach.clean(
+            markdown.markdown(value, output_format='html',
+                             extensions=extensions),
+            tags=allowed_tags, strip=True))
+    
+    def __repr__(self):
+        return '<Post %r>' % self.body
+
+db.event.listen(Post.body, 'set', Post.on_body_change)
+    
 
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
@@ -76,6 +105,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(64), unique=True, index=True)
     username = db.Column(db.String(64), unique=True, index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
+    posts = db.relationship('Post', backref='author', lazy='dynamic')
     password_hash = db.Column(db.String(128))
     confirmed = db.Column(db.Boolean, default=False)
     name = db.Column(db.String(64))
@@ -162,7 +192,9 @@ class User(UserMixin, db.Model):
         db.session.add(self)
         
     def gravatar_hash(self):
-        return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        if self.email:
+            return hashlib.md5(self.email.lower().encode('utf-8')).hexdigest()
+        return ''
 
     def gravatar(self, size=100, default='identicon', rating='g'):
         url = 'https://secure.gravatar.com/avatar'
@@ -182,7 +214,7 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
             return '<User %r>' % self.username
-        
+            
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
         return False
