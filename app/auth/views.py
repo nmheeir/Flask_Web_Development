@@ -10,6 +10,7 @@ from .forms import LoginForm, RegistrationForm, ChangeEmailForm, PasswordResetRe
 
 @auth.before_app_request
 def before_request():
+    current_user.ping()
     if current_user.is_authenticated \
             and not current_user.confirmed \
             and request.endpoint \
