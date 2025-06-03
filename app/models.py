@@ -257,18 +257,19 @@ class User(UserMixin, db.Model):
     def generate_fake(count=100):
         from sqlalchemy.exc import IntegrityError
         from random import seed
-        import forgery_py
+        from faker import Faker
         
+        fake = Faker()
         seed()
         for i in range(count):
-            u = User(email=forgery_py.internet.email_address(),
-                    username=forgery_py.internet.user_name(True),
-                    password=forgery_py.lorem_ipsum.word(),
+            u = User(email=fake.email(),
+                    username=fake.user_name(),
+                    password=fake.password(),
                     confirmed=True,
-                    name=forgery_py.name.full_name(),
-                    location=forgery_py.address.city(),
-                    about_me=forgery_py.lorem_ipsum.sentence(),
-                    member_since=forgery_py.date.date(True))
+                    name=fake.name(),
+                    location=fake.city(),
+                    about_me=fake.text(max_nb_chars=200),
+                    member_since=fake.date_time_this_decade())
             db.session.add(u)
             try:
                 db.session.commit()
