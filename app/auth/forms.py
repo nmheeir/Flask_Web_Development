@@ -36,6 +36,7 @@ class ChangeEmailForm(FlaskForm):
             raise ValidationError('Email already registered.')
         
 class PasswordResetRequestForm(FlaskForm):
+    
     email = StringField('Email', validators=[DataRequired(), Length(1, 64),
                                              Email()])
     submit = SubmitField('Reset Password')
