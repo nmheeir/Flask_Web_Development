@@ -82,6 +82,8 @@ def forge():
     from app.models import User, Post, Comment
     from app import db
     import click
+    
+    db.create_all()
 
     click.echo('Insert roles')
     Role.insert_roles()
