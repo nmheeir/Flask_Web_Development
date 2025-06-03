@@ -276,3 +276,38 @@ def moderate_disable(id):
     db.session.commit()
     return redirect(url_for('.moderate',
                             page=request.args.get('page', 1, type=int)))
+    
+@main.route('/manage')
+@login_required
+@admin_required
+def manage():
+    page = request.args.get('page', 1, type=int)
+    q = request.args.get('q', '').strip()
+    role_name = request.args.get('role', '').strip()
+    query = User.query
+    if q:
+        search = f"%{q}%"
+        query = query.filter(
+            db.or_(
+                User.username.ilike(search),
+                User.email.ilike(search)
+            )
+        )
+    if role_name:
+        query = query.join(Role).filter(Role.name == role_name)
+    pagination = query.order_by(User.id.asc()).paginate(
+        page=page, per_page=current_app.config['FLASKY_USERS_PER_PAGE'], error_out=False)
+    users = pagination.items
+    roles = Role.query.order_by(Role.name).all()
+    return render_template('manage.html', users=users, pagination=pagination, q=q, roles=roles, role_name=role_name)
+
+@main.route('/delete_user/<int:id>')
+@login_required
+@admin_required
+def delete_user(id):
+    user = User.query.get_or_404(id)
+    db.session.delete(user)
+    db.session.commit()
+    flash('User deleted successfully.')
+    return redirect(url_for('.manage'))
+
