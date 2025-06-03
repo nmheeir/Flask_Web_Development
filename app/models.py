@@ -4,10 +4,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer as Serializer
 from markdown import markdown
 import bleach
-from flask import current_app, request
+from flask import current_app, request, url_for
 from flask_login import UserMixin, AnonymousUserMixin
 from . import db, login_manager
-
+from app.exceptions import ValidationError
 
 class Permission:
     FOLLOW = 1
@@ -234,12 +234,36 @@ class User(UserMixin, db.Model):
             .filter(Follow.follower_id == self.id)\
             .order_by(Post.timestamp.desc())
             
+    def generate_auth_token(self):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'id': self.id}, salt='auth-token')
+    
+    def verify_auth_token(self, token, max_age=3600):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token, salt='auth-token', max_age=max_age)
+        except:
+            return None
+        return User.query.get(data['id'])
+    
     @staticmethod
     def add_self_follows():
         for user in User.query.all():
             if not user.is_following(user):
                 user.follow(user)
         db.session.commit()
+        
+    def to_json(self):
+        json_user = {
+            'url': url_for('api.get_user', id=self.id, _external=True),
+            'username': self.username,
+            'member_since': self.member_since,
+            'last_seen': self.last_seen,
+            'posts_url': url_for('api.get_user_posts', id=self.id, _external=True),
+            'post_count': self.posts.count()
+        }
+        return json_user
+    
 
     def __repr__(self):
         return '<User %r>' % self.username
@@ -280,6 +304,25 @@ class Post(db.Model):
         target.body_html = bleach.linkify(bleach.clean(
             markdown(value, output_format='html'),
             tags=allowed_tags, strip=True))
+        
+    @staticmethod
+    def from_json(json_post):
+        body = json_post.get('body')
+        if body is None or body == '':
+            raise ValidationError('post does not have a body')
+        return Post(body=body)
+    
+    def to_json(self):
+        json_post = {
+            'url': url_for('api.get_post', id=self.id, _external=True),
+            'body': self.body,
+            'body_html': self.body_html,
+            'timestamp': self.timestamp,
+            'author_url': url_for('api.get_user', id=self.author.id, _external=True),
+            'comments_url': url_for('api.get_post_comments', id=self.id, _external=True),
+            'comment_count': self.comments.count()
+        }
+        return json_post
 
 db.event.listen(Post.body, 'set', Post.on_changed_body)
 
