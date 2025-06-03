@@ -78,21 +78,27 @@ def deploy():
     
 @app.cli.command()
 def forge():
-    """Generate fake data."""
-    from app.models import User, Post, Comment
+    """Generate fake data (dev only)."""
+    from app.models import User, Post, Comment, Role
     from app import db
     import click
     
     db.create_all()
 
-    click.echo('Insert roles')
-    Role.insert_roles()
-    click.echo('Generating users...')
-    User.generate_fake(10)
-    click.echo('Generating posts...')
-    Post.generate_fake(50)
-    click.echo('Generating comments...')
-    Comment.generate_fake_comments(100)
+    if Role.query.count() == 0:
+        click.echo('Inserting roles...')
+        Role.insert_roles()
+
+    if User.query.count() == 0:
+        click.echo('Generating users...')
+        User.generate_fake(10)
+
+    if Post.query.count() == 0:
+        click.echo('Generating posts...')
+        Post.generate_fake(50)
+
+    if Comment.query.count() == 0:
+        click.echo('Generating comments...')
+        Comment.generate_fake_comments(100)
+
     click.echo('Done.')
-
-
