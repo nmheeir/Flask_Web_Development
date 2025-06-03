@@ -75,5 +75,22 @@ def deploy():
 
     # ensure all users are following their own posts
     User.add_self_follows()
+    
+@app.cli.command()
+def forge():
+    """Generate fake data."""
+    from app.models import User, Post, Comment
+    from app import db
+    import click
+
+    db.drop_all()
+    db.create_all()
+    click.echo('Generating users...')
+    User.generate_fake(10)
+    click.echo('Generating posts...')
+    Post.generate_fake(50)
+    click.echo('Generating comments...')
+    Comment.generate_fake_comments(100)
+    click.echo('Done.')
 
 
