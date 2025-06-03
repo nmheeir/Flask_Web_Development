@@ -7,7 +7,7 @@
 - Đăng ký, đăng nhập, xác thực email, đổi mật khẩu, đổi email
 - Quản lý hồ sơ cá nhân, avatar (Gravatar)
 - Đăng bài viết, chỉnh sửa, xóa bài viết
-- Bình luận, chỉnh sửa, xóa bình luận
+- Bình luận, chỉnh sửa bình luận
 - Theo dõi người dùng, xem feed bài viết của người theo dõi
 - Phân quyền: User, Moderator, Administrator
 - Quản trị user: tìm kiếm, lọc theo role, phân trang, chỉnh sửa, xóa user
@@ -27,7 +27,7 @@
 
 ```bash
 git clone <repo-url>
-cd Heir_Flask_Web_Development
+cd Flask_Web_Development
 python -m venv venv
 source venv/bin/activate  # hoặc venv\Scripts\activate trên Windows
 ```
@@ -133,10 +133,3 @@ Heir_Flask_Web_Development/
   `flask forge`
 - **Chạy profiler:**  
   `flask profile`
-
----
-
-## Đóng góp & License
-
-- Đóng góp: Pull request hoặc issue trên GitHub.
-- License: MIT 
