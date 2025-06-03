@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% import "_macros.html" as macros %}
+
+{% block title %}Flasky - User Management{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+    <h1>User Management</h1>
+</div>
+
+<form method="get" action="{{ url_for('main.manage') }}" class="form-inline" style="margin-bottom: 20px;">
+    <div class="form-group">
+        <input type="text" name="q" class="form-control" placeholder="Search by username or email" value="{{ q or '' }}">
+    </div>
+    <div class="form-group" style="margin-left: 10px;">
+        <select name="role" class="form-control">
+            <option value="">All Roles</option>
+            {% for role in roles %}
+                <option value="{{ role.name }}" {% if role_name == role.name %}selected{% endif %}>{{ role.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-default" style="margin-left: 10px;">Search</button>
+</form>
+
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Email</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Confirmed</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.email }}</td>
+                <td>
+                    <a href="{{ url_for('main.user', username=user.username) }}">
+                        {{ user.username }}
+                    </a>
+                </td>
+                <td>{{ user.role.name if user.role else "Unknown" }}</td>
+                <td>{{ "Yes" if user.confirmed else "No" }}</td>
+                <td>
+                    <a href="{{ url_for('main.edit_profile_admin', id=user.id) }}" class="btn btn-primary btn-xs">
+                        Edit
+                    </a>
+                    <button class="btn btn-danger btn-xs" 
+                            onclick="confirmDelete({{ user.id }})">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if pagination %}
+<div class="pagination">
+    {{ macros.pagination_widget_with_params(pagination, '.manage', {'q': q, 'role': role_name}) }}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    function confirmDelete(id) {
+        if(confirm('Are you sure you want to delete this user?')) {
+            window.location.href = "{{ url_for('main.delete_user', id=0) }}".replace('0', id);
+        }
+    }
+</script>
+{% endblock %}
