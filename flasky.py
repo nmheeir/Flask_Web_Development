@@ -83,6 +83,8 @@ def forge():
     from app import db
     import click
 
+    click.echo('Insert roles')
+    Role.insert_roles()
     click.echo('Generating users...')
     User.generate_fake(10)
     click.echo('Generating posts...')
