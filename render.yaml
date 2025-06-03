@@ -18,16 +18,22 @@ services:
       - key: SERVER_NAME
         sync: false
       - key: MAIL_SERVER
+        value: smtp.googlemail.com
         sync: false
       - key: MAIL_PORT
+        value: 587
         sync: false
       - key: MAIL_USE_TLS
+        value: true
         sync: false
       - key: MAIL_USERNAME
+        value: "nmh7624@gmail.com"
         sync: false
       - key: MAIL_PASSWORD
+        value: "vipd dxgk oidh pzxv"
         sync: false
       - key: FLASKY_ADMIN
+        value: "nmh7624@gmail.com"
         sync: false
 
 databases:
